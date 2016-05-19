@@ -30,31 +30,34 @@ struct thread_args {
 void *handle(void *args) {
     int32_t client_fd = ((struct thread_args *)args)->client_fd;
     struct sockaddr_in client = ((struct thread_args *)args)->client;
+    free(args);
     int32_t read_size = -1;
     uint8_t buf[BUFFER];
     char client_ip[INET_ADDRSTRLEN];
+    uint16_t client_port = ntohs(client.sin_port);
     inet_ntop(AF_INET, &(client.sin_addr), client_ip, INET_ADDRSTRLEN);
+    logging("Establish connection with client %s:%d\n", client_ip, client_port);
     while ((read_size = recv(client_fd, buf, BUFFER, 0)) > 0) {
         // handle...
-        logging("from %s:%d %s\n", client_ip, client.sin_port, buf);
+        logging("from %s:%d %s\n", client_ip, client_port, buf);
         if (send(client_fd, buf, read_size, 0) < 0) {
-            exception("Failed to send echo response to client %s:%d.\n", client_ip, client.sin_port);
+            exception("Failed to send echo response to client %s:%d.\n", client_ip, client_port);
         }
     }
     if (read_size < 0) {
         // abnormal close.
-        logging("Close connection with client %s:%d abnormally.\n", client_ip, client.sin_port);
+        logging("Close connection with client %s:%d abnormally.\n", client_ip, client_port);
         pthread_exit(NULL);
     }
     else {
         // normal close.
-        logging("Close connection with client %s:%d.\n", client_ip, client.sin_port);
+        logging("Close connection with client %s:%d.\n", client_ip, client_port);
     }
     close(client_fd);
     return NULL;
 }
 
-void build_server(int port) {
+void build_server(uint16_t port) {
     pthread_t tid;
     int32_t server_fd, client_fd;
     struct sockaddr_in server, client;

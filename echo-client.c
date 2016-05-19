@@ -22,13 +22,21 @@ void usage(char const *name) {
 #define exception(...) do { fprintf(stderr, __VA_ARGS__); exit(1); } while (0)
 #define logging(...) do { fprintf(stdout, __VA_ARGS__); } while (0)
 
-void handle(int32_t client_fd) {
+void handle(int32_t client_fd, struct sockaddr_in server) {
     int32_t read_size = -1;
     uint8_t buf[BUFFER];
+    char server_ip[INET_ADDRSTRLEN];
+    uint16_t server_port = ntohs(server.sin_port);
+    inet_ntop(AF_INET, &(server.sin_addr), server_ip, INET_ADDRSTRLEN);
+    logging("Establish connection with server %s:%d\n", server_ip, server_port);
     while (scanf("%s", buf) != EOF) {
         if (send(client_fd, buf, strlen((const char *)buf)+1, 0) < 0) {
             exception("Failed to send echo to server.\n");
         }
+        if ((read_size = recv(client_fd, buf, BUFFER, 0)) < 0) {
+            exception("Failed to receive from server %s:%d\n", server_ip, server_port);
+        }
+        logging("from server %s:%d %s\n", server_ip, server_port, buf);
     }
     if (read_size < 0) {
         exception("Failed to read data from client.");
@@ -56,7 +64,7 @@ void build_client(const char *target, uint16_t port) {
     }
 
     // Handle.
-    handle(client_fd);
+    handle(client_fd, server);
 
     // Bind with given port and start listening.
     logging("Connection closed.\n");
