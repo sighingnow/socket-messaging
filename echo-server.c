@@ -91,6 +91,7 @@ void build_server(uint16_t port) {
         if(pthread_create(&tid, NULL, handle, args) < 0) {
             exception("Failed to create thread.\n");
         }
+        pthread_detach(tid);
     }
     logging("Listening stop.\n");
 }
