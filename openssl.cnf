@@ -1,0 +1,46 @@
+#
+# OpenSSL example configuration file.
+# This is mostly being used for generation of certificate requests.
+#
+
+####################################################################
+[ req ]
+default_bits		    = 2048
+distinguished_name	    = req_name
+attributes		        = req_attributes
+x509_extensions	        = v3_ca	# The extentions to add to the self signed cert
+
+string_mask = utf8only
+
+
+[ req_name ]
+countryName			            = Country Name (2 letter code)
+countryName_default		        = CN
+countryName_min			        = 2
+countryName_max			        = 2
+
+stateOrProvinceName		        = State or Province Name (full name)
+stateOrProvinceName_default	    = Some-State
+
+localityName			        = Locality Name (eg, city)
+localityName_default            = Some-Locality
+
+0.organizationName		        = Organization Name (eg, company)
+0.organizationName_default	    = Some-Ltd
+
+organizationalUnitName		    = Organizational Unit Name (eg, section)
+organizationalUnitName_default	= Some-Organization
+
+commonName			            = Common Name (e.g. server FQDN or YOUR name)
+commonName_max			        = 64
+commonName_default              = sighingnow
+
+emailAddress			        = Email Address
+emailAddress_max		        = 64
+emailAddress_default            = sighingnow@yandex.com
+
+[ req_attributes ]
+
+[v3_ca]
+
+
