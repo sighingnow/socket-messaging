@@ -5,24 +5,29 @@
  *
  */
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <unistd.h>
 
 const int BUFFER = 1024;
 
-void usage(char const *name) {
-    fprintf(stderr, "Usage: %s ip port\n", name);
-}
+void usage(char const *name) { fprintf(stderr, "Usage: %s ip port\n", name); }
 
-#define exception(...) do { fprintf(stderr, __VA_ARGS__); exit(1); } while (0)
-#define logging(...) do { fprintf(stdout, __VA_ARGS__); } while (0)
+#define exception(...)                \
+    do {                              \
+        fprintf(stderr, __VA_ARGS__); \
+        exit(1);                      \
+    } while (0)
+#define logging(...)                  \
+    do {                              \
+        fprintf(stdout, __VA_ARGS__); \
+    } while (0)
 
-void handle(int32_t client_fd, struct sockaddr_in server) {
+void handle(int32_t server_fd, struct sockaddr_in server) {
     int32_t read_size = -1;
     uint8_t buf[BUFFER];
     char server_ip[INET_ADDRSTRLEN];
@@ -30,25 +35,23 @@ void handle(int32_t client_fd, struct sockaddr_in server) {
     inet_ntop(AF_INET, &(server.sin_addr), server_ip, INET_ADDRSTRLEN);
     logging("Establish connection with server %s:%d\n", server_ip, server_port);
     while (scanf("%s", buf) != EOF) {
-        if (send(client_fd, buf, strlen((const char *)buf)+1, 0) < 0) {
+        if (send(server_fd, buf, strlen((const char *)buf) + 1, 0) < 0) {
             exception("Failed to send echo to server.\n");
         }
-        if ((read_size = recv(client_fd, buf, BUFFER, 0)) < 0) {
+        if ((read_size = recv(server_fd, buf, BUFFER, 0)) < 0) {
             exception("Failed to receive from server %s:%d\n", server_ip, server_port);
         }
         logging("from server %s:%d %s\n", server_ip, server_port, buf);
     }
-    if (read_size < 0) {
-        exception("Failed to read data from client.");
-    }
-    close(client_fd);
+    logging("Client are going to stop connection\n");
+    close(server_fd);
 }
 
 void build_client(const char *target, uint16_t port) {
-    int32_t client_fd;
+    int32_t server_fd;
     struct sockaddr_in server;
     // Create socket.
-    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         exception("Failed to create socket.\n");
     }
     memset(&server, 0x00, sizeof(server));
@@ -59,12 +62,12 @@ void build_client(const char *target, uint16_t port) {
     }
 
     // Connect to server.
-    if (connect(client_fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
+    if (connect(server_fd, (struct sockaddr *)&server, sizeof(server)) < 0) {
         exception("Failed to establish connection to server %s:%d\n", target, port);
     }
 
     // Handle.
-    handle(client_fd, server);
+    handle(server_fd, server);
 
     // Bind with given port and start listening.
     logging("Connection closed.\n");
@@ -82,4 +85,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-

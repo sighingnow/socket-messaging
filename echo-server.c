@@ -5,22 +5,27 @@
  *
  */
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <pthread.h>
+#include <unistd.h>
 
 const int BUFFER = 1024;
 
-void usage(char const *name) {
-    fprintf(stderr, "Usage: %s port\n", name);
-}
+void usage(char const *name) { fprintf(stderr, "Usage: %s port\n", name); }
 
-#define exception(...) do { fprintf(stderr, __VA_ARGS__); exit(1); } while (0)
-#define logging(...) do { fprintf(stdout, __VA_ARGS__); } while (0)
+#define exception(...)                \
+    do {                              \
+        fprintf(stderr, __VA_ARGS__); \
+        exit(1);                      \
+    } while (0)
+#define logging(...)                  \
+    do {                              \
+        fprintf(stdout, __VA_ARGS__); \
+    } while (0)
 
 struct thread_args {
     int32_t client_fd;
@@ -48,8 +53,7 @@ void *handle(void *args) {
         // abnormal close.
         logging("Close connection with client %s:%d abnormally.\n", client_ip, client_port);
         pthread_exit(NULL);
-    }
-    else {
+    } else {
         // normal close.
         logging("Close connection with client %s:%d.\n", client_ip, client_port);
     }
@@ -72,7 +76,7 @@ void build_server(uint16_t port) {
     server.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind with given port and start listening.
-    if (bind(server_fd, (struct sockaddr *) &server, sizeof(server)) < 0) {
+    if (bind(server_fd, (struct sockaddr *)&server, sizeof(server)) < 0) {
         exception("Failed to bind socket at port %d.\n", port);
     }
     if (listen(server_fd, 1024) < 0) {
@@ -82,17 +86,18 @@ void build_server(uint16_t port) {
 
     while (1) {
         socklen_t client_size = sizeof(client);
-        if ((client_fd = accept(server_fd, (struct sockaddr*) &client, &client_size)) < 0) {
+        if ((client_fd = accept(server_fd, (struct sockaddr *)&client, &client_size)) < 0) {
             exception("Failed to establish connection with client.\n");
         }
         args = (struct thread_args *)malloc(sizeof(struct thread_args));
         args->client_fd = client_fd;
         args->client = client;
-        if(pthread_create(&tid, NULL, handle, args) < 0) {
+        if (pthread_create(&tid, NULL, handle, args) < 0) {
             exception("Failed to create thread.\n");
         }
         pthread_detach(tid);
     }
+    close(server_fd);
     logging("Listening stop.\n");
 }
 
@@ -108,4 +113,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
