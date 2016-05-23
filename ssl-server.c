@@ -94,7 +94,7 @@ void *handle(void *args) {
     pthread_exit(NULL);
 }
 
-void build_server(uint16_t port, const char *cert, const char *private_key) {
+void build_server(uint16_t port, char const *cert, char const *private_key) {
     pthread_t tid;
     int32_t server_fd, client_fd;
     struct sockaddr_in server, client;

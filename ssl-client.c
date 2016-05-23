@@ -68,7 +68,7 @@ void handle(int32_t server_fd, struct sockaddr_in server) {
 
     // SSL echo communication.
     while (scanf("%s", buf) != EOF) {
-        if (SSL_write(ssl, buf, strlen((const char *)buf) + 1) < 0) {
+        if (SSL_write(ssl, buf, strlen((char const *)buf) + 1) < 0) {
             exception("Failed to send echo to SSL server.\n");
         }
         if ((read_size = SSL_read(ssl, buf, BUFFER)) < 0) {
@@ -88,7 +88,7 @@ void handle(int32_t server_fd, struct sockaddr_in server) {
     SSL_CTX_free(ctx);
 }
 
-void build_client(const char *target, uint16_t port) {
+void build_client(char const *target, uint16_t port) {
     int32_t server_fd;
     struct sockaddr_in server;
 
