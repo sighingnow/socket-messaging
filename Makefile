@@ -1,6 +1,9 @@
 
-default-target: echo-client.out echo-server.out \
-				ssl-server.out ssl-client.out
+tcp		:= 		echo-server.out echo-client.out
+ssl		:=		ssl-server.out ssl-client.out
+udp		:= 		datagram-server.out datagram-client.out
+
+default-target: $(tcp) $(ssl) $(udp)
 
 CC = clang
 CC_FLAGS = -std=c99 -O2 -Wall -Wextra -Werror -pedantic-errors
