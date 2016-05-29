@@ -67,12 +67,15 @@ void handle(int32_t server_fd, struct sockaddr_in server) {
     X509_free(cert);
 
     // SSL echo communication.
-    while (scanf("%s", buf) != EOF) {
+    while (fgets((char *)buf, BUFFER, stdin) != NULL) {
         if (SSL_write(ssl, buf, strlen((char const *)buf) + 1) < 0) {
             exception("Failed to send echo to SSL server.\n");
         }
         if ((read_size = SSL_read(ssl, buf, BUFFER)) < 0) {
             exception("Failed to receive from SSL server %s:%d.\n", server_ip, server_port);
+        }
+        if (read_size == 0) {
+            break;
         }
         buf[read_size] = '\0';
         logging("from SSL server %s:%d %s\n", server_ip, server_port, buf);

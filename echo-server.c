@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -43,8 +44,11 @@ void *handle(void *args) {
     inet_ntop(AF_INET, &(client.sin_addr), client_ip, INET_ADDRSTRLEN);
     logging("Establish connection with client %s:%d\n", client_ip, client_port);
     while ((read_size = recv(client_fd, buf, BUFFER, 0)) > 0) {
-        // handle...
         logging("from %s:%d %s\n", client_ip, client_port, buf);
+        // handle...
+        if (strcmp((char const *)buf, "bye") == 0) {
+            break;
+        }
         if (send(client_fd, buf, read_size, 0) < 0) {
             exception("Failed to send echo response to client %s:%d.\n", client_ip, client_port);
         }
