@@ -34,7 +34,7 @@ void handle(int32_t server_fd, struct sockaddr_in server) {
     uint16_t server_port = ntohs(server.sin_port);
     inet_ntop(AF_INET, &(server.sin_addr), server_ip, INET_ADDRSTRLEN);
     logging("Establish connection with server %s:%d\n", server_ip, server_port);
-    while (scanf("%s", buf) != EOF) {
+    while (fgets((char *)buf, BUFFER, stdin) != NULL) {
         if (send(server_fd, buf, strlen((char const *)buf) + 1, 0) < 0) {
             exception("Failed to send echo to server.\n");
         }
